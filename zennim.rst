@@ -112,28 +112,13 @@ Operators
   var g = 70
   ++g
   g ++ 7
-  g.`++`(10, 20) # operator in backticks is treated like an 'f'
+  # operator in backticks is treated like an 'f':
+  g.`++`(10, 20)
   echo g  # writes 108
 
 * operators are simply sugar for functions
 * parameters are readonly unless declared as ``var``
 * ``var`` means "pass by reference" (implemented with a hidden pointer)
-
-
-Control flow
-============
-
-
-- The usual control flow statements are available:
-  * if
-  * case
-  * when
-  * while
-  * for
-  * try
-  * defer
-  * return
-  * yield
 
 
 Statements vs expressions
@@ -152,7 +137,8 @@ Statements require indentation:
   else:
     y = true
 
-  # indentation needed, because two statements follow the condition:
+  # indentation needed, because two statements
+  # follow the condition:
   if x:
     x = false
     y = false
@@ -270,7 +256,7 @@ Structured programming
 Static typing
 =============
 
-enums & sets
+distinct & enums & sets
 
 .. code-block:: nim
    :number-lines:
@@ -411,7 +397,8 @@ Exception tracking
 
   proc main() {.raises: [].} =
     copyDir("from", "to")
-    # Error: copyDir("from", "to") can raise an unlisted exception: ref OSError
+    # Error: copyDir("from", "to") can raise an
+    # unlisted exception: ref OSError
 
 
 
@@ -507,10 +494,12 @@ Mutability restrictions
     var it = n
     let x = it
     let y = x
-    let z = y # <-- is the statement that connected the mutation to the parameter
+    let z = y # <-- is the statement that connected
+              # the mutation to the parameter
 
-    select(x, z).data = "tricky" # <--  the mutation is here
-    # Error: an object reachable from 'n' is potentially mutated
+    select(x, z).data = "tricky" # <-- the mutation is here
+    # Error: an object reachable from 'n'
+    # is potentially mutated
 
 
 
@@ -659,8 +648,10 @@ Lifting
       for i in 0..<x.len:
         result[i] = fname(x[i])
 
-  liftFromScalar(sqrt)   # make sqrt() work for sequences
-  echo sqrt(@[4.0, 16.0, 25.0, 36.0])   # => @[2.0, 4.0, 5.0, 6.0]
+  # make sqrt() work for sequences:
+  liftFromScalar(sqrt)
+  echo sqrt(@[4.0, 16.0, 25.0, 36.0])
+  # => @[2.0, 4.0, 5.0, 6.0]
 
 
 Declarative programming
@@ -669,14 +660,15 @@ Declarative programming
 .. code-block:: nim
    :number-lines:
 
-  proc threadTests(r: var Results, cat: Category, options: string) =
+  proc threadTests(r: var Results, cat: Category,
+                   options: string) =
     template test(filename: untyped) =
-      testSpec r, makeTest("tests/threads" / filename, options,
-        cat, actionRun)
-      testSpec r, makeTest("tests/threads" / filename, options &
-        " -d:release", cat, actionRun)
-      testSpec r, makeTest("tests/threads" / filename, options &
-        " --tlsEmulation:on", cat, actionRun)
+      testSpec r, makeTest("tests/threads" / filename,
+        options, cat, actionRun)
+      testSpec r, makeTest("tests/threads" / filename,
+        options & " -d:release", cat, actionRun)
+      testSpec r, makeTest("tests/threads" / filename,
+        options & " --tlsEmulation:on", cat, actionRun)
 
     test "tactors"
     test "tactors2"
@@ -704,9 +696,13 @@ Varargs
 
 .. code-block:: nim
    :number-lines:
+
+
+
   import macros
 
-  macro apply(caller: untyped; args: varargs[untyped]): untyped =
+  macro apply(caller: untyped;
+              args: varargs[untyped]): untyped =
     result = newStmtList()
     for a in args:
       result.add(newCall(caller, a))
@@ -741,8 +737,11 @@ Don't get in the programmer's way
 
 - Interoperability with C++, C and JavaScript.
 - By compiling Nim to these languages.
-- Low level features are available: Bit twiddling, unsafe type
-  conversions ("cast"), raw pointers.
+- Low level features are available:
+
+  * Bit twiddling
+  * unsafe type conversions ("cast")
+  * raw pointers.
 
 
 Emit pragma
@@ -757,19 +756,20 @@ Emit pragma
 
   proc embedsC() =
     var nimVar = 89
-    # use backticks to access Nim symbols within an emit section:
-    {.emit: """fprintf(stdout, "%d\n", cvariable + (int)`nimVar`);""".}
+    {.emit: ["""fprintf(stdout, "%d\n", cvariable + (int)""",
+      nimVar, ");"].}
 
   embedsC()
 
 
-Destructors
-===========
+Sink parameters
+===============
 
 .. code-block:: nim
    :number-lines:
 
-  func f(x: sink string) = discard "do nothing"
+  func f(x: sink string) =
+    discard "do nothing"
 
   f "abc"
 
@@ -777,8 +777,8 @@ Destructors
 Compile with ``nim c --gc:orc --expandArc:f $file``
 
 
-Destructors
-===========
+Sink parameters
+===============
 
 .. code-block:: nim
    :number-lines:
@@ -791,8 +791,8 @@ Destructors
 
 
 
-Destructors
-===========
+Sink parameters
+===============
 
 .. code-block:: nim
    :number-lines:
@@ -805,8 +805,22 @@ Destructors
   f "abc"
 
 
-Destructors
-===========
+Sink parameters
+===============
+
+.. code-block:: nim
+    :number-lines:
+
+  var g: string
+
+  proc f(x: sink string) =
+    `=sink`(g, x)
+
+  f "abc"
+
+
+Sink parameters
+===============
 
 .. code-block:: nim
    :number-lines:
@@ -821,19 +835,6 @@ Destructors
 
   f "abc"
 
-
-Destructors
-===========
-
-.. code-block:: nim
-   :number-lines:
-
-  var g: string
-
-  proc f(x: sink string) =
-    `=sink`(g, x)
-
-  f "abc"
 
 
 
@@ -862,7 +863,8 @@ Move operator
 
   proc `=sink`*[T](a: var myseq[T]; b: myseq[T]) =
     # move assignment, optional.
-    # Compiler is using `=destroy` and `copyMem` when not provided
+    # Compiler is using `=destroy` and
+    # `copyMem` when not provided
     `=destroy`(a)
     a.len = b.len
     a.cap = b.cap
@@ -882,7 +884,8 @@ Assignment operator
     a.len = b.len
     a.cap = b.cap
     if b.data != nil:
-      a.data = cast[typeof(a.data)](alloc(a.cap * sizeof(T)))
+      a.data = cast[typeof(a.data)](
+        alloc(a.cap * sizeof(T)))
       for i in 0..<a.len:
         a.data[i] = b.data[i]
 
